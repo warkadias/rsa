@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Rewards Search Automator - Modified",
+  "version": "1.5.1",
+  "description": "Bing Rewards Auto Bot - PC Search (20) + Read to Earn (10 artikel)",
+  "author": "Modified - PC Only + Read to Earn",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "/ico/16.png",
+      "32":  "/ico/32.png",
+      "48":  "/ico/48.png",
+      "128": "/ico/128.png",
+      "256": "/ico/256.png"
+    }
+  },
+  "background": {
+    "service_worker": "/js/sw.js"
+  },
+  "content_scripts": [{
+    "js": ["/js/content.js"],
+    "matches": ["*://*.bing.com/*"],
+    "run_at": "document_start"
+  }],
+  "permissions": [
+    "alarms",
+    "scripting",
+    "storage",
+    "tabs",
+    "windows",
+    "webNavigation",
+    "notifications"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16":  "/ico/16.png",
+    "32":  "/ico/32.png",
+    "48":  "/ico/48.png",
+    "128": "/ico/128.png",
+    "256": "/ico/256.png"
+  },
+  "web_accessible_resources": [{
+    "matches": ["<all_urls>"],
+    "resources": [
+      "/libs/extend-native-history-api.js",
+      "/libs/requests.js",
+      "/ui.html"
+    ]
+  }]
+}

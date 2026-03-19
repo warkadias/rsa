@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rewards Search Automator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="/libs/permissions.js"></script>
+  <style>
+    :root {
+      --primary: #0072ff;
+      --primary-dark: #0057cc;
+      --success: #22c55e;
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+    * { font-family: 'Inter', sans-serif; }
+    body { background: var(--bg); min-height: 100vh; }
+
+    /* HEADER */
+    .app-header {
+      background: linear-gradient(135deg, #0057cc, #0099ff);
+      color: white;
+      padding: 18px 0 14px;
+      box-shadow: 0 2px 12px rgba(0,114,255,.25);
+    }
+    .app-header h1 { font-size: 1.3rem; font-weight: 700; margin: 0; letter-spacing: -.3px; }
+    .app-header p  { font-size: .8rem; opacity: .85; margin: 2px 0 0; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.18); border-radius: 20px;
+      padding: 5px 12px; font-size: .78rem; font-weight: 600;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #86efac;
+    }
+    .status-dot.running { animation: blink 1s infinite; background: #4ade80; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* NAV TABS */
+    .nav-tabs .nav-link {
+      border: none; border-bottom: 3px solid transparent;
+      color: var(--muted); font-weight: 600; font-size: .9rem;
+      padding: 10px 18px; border-radius: 0;
+    }
+    .nav-tabs .nav-link.active {
+      color: var(--primary); border-bottom-color: var(--primary);
+      background: transparent;
+    }
+    .nav-tabs { border-bottom: 1px solid var(--border); background: white; }
+
+    /* CARDS */
+    .card { border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+    .card-label {
+      font-size: .72rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px;
+    }
+
+    /* BIG NUMBER INPUT */
+    .big-input-wrap {
+      background: #f9fafb; border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 10px 14px; text-align: center;
+    }
+    .big-input-wrap label {
+      font-size: .72rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 2px;
+    }
+    .big-input-wrap input {
+      background: transparent; border: none; outline: none;
+      font-size: 2.5rem; font-weight: 700; color: var(--primary);
+      width: 100%; text-align: center; line-height: 1.1;
+    }
+    .big-input-wrap input::-webkit-outer-spin-button,
+    .big-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* PRESET BUTTONS */
+    .preset-btn {
+      background: #f3f4f6; border: 1.5px solid var(--border);
+      border-radius: 10px; color: #374151; font-weight: 600;
+      font-size: .82rem; padding: 8px 6px; width: 100%;
+      cursor: pointer; transition: all .18s; text-align: center;
+    }
+    .preset-btn:hover { background: #e0e7ff; border-color: #6366f1; color: #4338ca; }
+    .preset-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* NICHE PILLS */
+    .niche-pill {
+      background: #f3f4f6; border: 1.5px solid var(--border);
+      border-radius: 20px; color: #374151; font-weight: 600;
+      font-size: .8rem; padding: 6px 14px; cursor: pointer;
+      transition: all .18s; white-space: nowrap;
+    }
+    .niche-pill:hover { background: #dbeafe; border-color: #93c5fd; }
+    .niche-pill.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* DELAY INPUT */
+    .delay-input {
+      background: #f9fafb; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 8px 12px; width: 100%;
+      font-size: 1.1rem; font-weight: 700; color: #1f2937;
+      text-align: center; outline: none;
+      transition: border-color .18s;
+    }
+    .delay-input:focus { border-color: var(--primary); background: white; }
+
+    /* SCHEDULE PILLS */
+    .schedule-pill {
+      background: #f3f4f6; border: 1.5px solid var(--border);
+      border-radius: 10px; color: #374151; font-weight: 600;
+      font-size: .82rem; padding: 9px 8px; cursor: pointer;
+      transition: all .18s; text-align: center; width: 100%;
+    }
+    .schedule-pill:hover { background: #e0e7ff; border-color: #6366f1; }
+    .schedule-pill.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* BUTTONS */
+    .btn-run {
+      background: linear-gradient(135deg, #0072ff, #0099ff);
+      color: white; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; padding: 13px;
+      width: 100%; cursor: pointer; transition: all .2s;
+      box-shadow: 0 4px 14px rgba(0,114,255,.35);
+    }
+    .btn-run:hover { box-shadow: 0 6px 20px rgba(0,114,255,.5); transform: translateY(-1px); }
+    .btn-run:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-stop {
+      background: #fff; color: #ef4444; border: 1.5px solid #fca5a5;
+      border-radius: 12px; font-size: 1rem; font-weight: 700;
+      padding: 13px; width: 100%; cursor: pointer; transition: all .2s;
+    }
+    .btn-stop:hover { background: #fef2f2; }
+
+    /* PROGRESS CARD */
+    .progress-card { background: #f0f7ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 16px; }
+    .progress-label { font-size: .78rem; font-weight: 600; color: #2563eb; text-transform: uppercase; letter-spacing: .5px; }
+    .progress-bar-track { background: #dbeafe; border-radius: 8px; height: 10px; overflow: hidden; margin: 6px 0; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); border-radius: 8px; transition: width .5s; }
+    .progress-count { font-size: 1.4rem; font-weight: 800; color: #1d4ed8; }
+
+    /* PHASE STEPS */
+    .phase-step {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .78rem; font-weight: 600; color: #9ca3af; padding: 4px 0;
+    }
+    .phase-step .dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
+    .phase-step.active { color: #2563eb; }
+    .phase-step.active .dot { background: #3b82f6; }
+    .phase-step.done { color: #16a34a; }
+    .phase-step.done .dot { background: #22c55e; }
+
+    /* SECTION TITLES */
+    .section-title {
+      font-size: .78rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .7px;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 576px) {
+      .big-input-wrap input { font-size: 2rem; }
+      .app-header h1 { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="container-lg">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1>⚡ Rewards Search Automator</h1>
+        <p>PC Search Otomatis + Read to Earn</p>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Idle</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR (muncul saat running) -->
+<div id="progressSection" style="display:none" class="bg-white border-bottom">
+  <div class="container-lg py-3">
+    <div class="progress-card">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <div class="progress-label" id="progressLabel">🔍 Pencarian PC</div>
+          <div class="progress-count"><span id="progressCurrent">0</span> / <span id="progressTotal">20</span></div>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <div class="phase-step" id="phaseSearch"><div class="dot"></div> PC Search</div>
+          <div class="phase-step" id="phaseRead"><div class="dot"></div> Read to Earn</div>
+          <div class="phase-step" id="phaseDone"><div class="dot"></div> Selesai</div>
+        </div>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="mt-2" id="lastLogText" style="font-size:.78rem;color:#374151;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container-lg py-3">
+
+  <!-- TABS -->
+  <ul class="nav nav-tabs mb-3" id="mainTabs">
+    <li class="nav-item"><a class="nav-link active" data-tab="search" href="#">🔍 Search</a></li>
+    <li class="nav-item"><a class="nav-link" data-tab="schedule" href="#">🕐 Schedule</a></li>
+  </ul>
+
+  <!-- ===== SEARCH TAB ===== -->
+  <div id="tab-search">
+
+    <!-- Jumlah pencarian -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="section-title">📊 Jumlah Pencarian</div>
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <div class="big-input-wrap">
+              <label>PC Searches</label>
+              <input type="number" id="searchDesktop" value="20" min="0" max="150"/>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="big-input-wrap">
+              <label>Read to Earn</label>
+              <input type="number" id="readCount" value="10" min="0" max="20"/>
+            </div>
+          </div>
+        </div>
+        <div class="section-title">⚡ Preset Cepat</div>
+        <div class="row g-2">
+          <div class="col-3"><div class="preset-btn" data-pc="10">10 PC</div></div>
+          <div class="col-3"><div class="preset-btn active" data-pc="20">20 PC</div></div>
+          <div class="col-3"><div class="preset-btn" data-pc="30">30 PC</div></div>
+          <div class="col-3"><div class="preset-btn" data-pc="50">50 PC</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delay Pencarian -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="section-title">⏱️ Jeda Antar Pencarian</div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="card-label">Min. (detik)</label>
+            <input type="number" id="searchMin" value="10" min="5" max="999" class="delay-input"/>
+          </div>
+          <div class="col-6">
+            <label class="card-label">Max. (detik)</label>
+            <input type="number" id="searchMax" value="25" min="10" max="999" class="delay-input"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delay Membaca -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="section-title">📖 Jeda Membaca Artikel</div>
+        <div class="row g-3 mb-2">
+          <div class="col-6">
+            <label class="card-label">Min. Baca (detik)</label>
+            <input type="number" id="readMin" value="15" min="5" max="300" class="delay-input"/>
+          </div>
+          <div class="col-6">
+            <label class="card-label">Max. Baca (detik)</label>
+            <input type="number" id="readMax" value="30" min="10" max="300" class="delay-input"/>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="card-label">Min. Jeda Antar Artikel (detik)</label>
+            <input type="number" id="readPauseMin" value="5" min="1" max="60" class="delay-input"/>
+          </div>
+          <div class="col-6">
+            <label class="card-label">Max. Jeda Antar Artikel (detik)</label>
+            <input type="number" id="readPauseMax" value="10" min="1" max="60" class="delay-input"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Niche -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="section-title">🎯 Kategori Pencarian</div>
+        <div class="d-flex flex-wrap gap-2">
+          <div class="niche-pill" data-niche="Tech">Tech</div>
+          <div class="niche-pill" data-niche="Anime">Anime</div>
+          <div class="niche-pill" data-niche="Travel">Travel</div>
+          <div class="niche-pill" data-niche="Movies">Movies</div>
+          <div class="niche-pill active" data-niche="Random">Random</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="d-grid gap-2 mb-4">
+      <button class="btn-run" id="btnSearch">▶ Mulai Sekarang</button>
+      <button class="btn-stop" id="btnStop" style="display:none">⏹ Hentikan</button>
+    </div>
+  </div>
+
+  <!-- ===== SCHEDULE TAB ===== -->
+  <div id="tab-schedule" style="display:none">
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="section-title">📊 Jumlah (Terjadwal)</div>
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <div class="big-input-wrap">
+              <label>PC Searches</label>
+              <input type="number" id="scheduleDesktop" value="20" min="0" max="150"/>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="big-input-wrap">
+              <label>Read to Earn</label>
+              <input type="number" id="scheduleReadCount" value="10" min="0" max="20"/>
+            </div>
+          </div>
+        </div>
+        <div class="section-title">⏱️ Jeda (detik)</div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="card-label">Min</label>
+            <input type="number" id="scheduleMin" value="10" min="5" max="999" class="delay-input"/>
+          </div>
+          <div class="col-6">
+            <label class="card-label">Max</label>
+            <input type="number" id="scheduleMax" value="25" min="10" max="999" class="delay-input"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="section-title">🕐 Jadwal Otomatis</div>
+        <div class="row g-2">
+          <div class="col-6"><div class="schedule-pill active" data-schedule="scheduleT1">🚫 Tidak Pernah</div></div>
+          <div class="col-6"><div class="schedule-pill" data-schedule="scheduleT2">🚀 Saat Startup</div></div>
+          <div class="col-6"><div class="schedule-pill" data-schedule="scheduleT3">⏰ Tiap 5-6 Menit</div></div>
+          <div class="col-6"><div class="schedule-pill" data-schedule="scheduleT4">⏰ Tiap 15-17 Menit</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-grid gap-2 mb-4">
+      <button class="btn-run" id="btnSchedule">💾 Simpan Jadwal</button>
+    </div>
+
+  </div><!-- /schedule tab -->
+
+</div><!-- /container -->
+
+<script src="js/jq.js"></script>
+<script src="js/ui.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
